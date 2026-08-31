@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antikythera Mechanism Simulator</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --panel-bg: #1e1e24;
+            --text-color: #e2e8f0;
+            --accent-gold: #d4af37;
+            --accent-bronze: #cd7f32;
+            --bulb-red: #ef4444;
+            --bulb-glow: rgba(239, 68, 68, 0.4);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: var(--accent-gold);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            margin: 5px 0 20px 0;
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1100px;
+            width: 90%;
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .simulator-box {
+            position: relative;
+            background: radial-gradient(circle, #2a2a35 0%, #1a1a22 100%);
+            border: 3px solid var(--accent-bronze);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: transparent;
+            border-radius: 8px;
+        }
+
+        .control-panel {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .crank-bulb {
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #b91c1c);
+            border: 2px solid #7f1d1d;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0px var(--bulb-glow);
+            transition: transform 0.1s, box-shadow 0.3s;
+        }
+
+        .crank-bulb:hover {
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6), 0 0 20px var(--bulb-red);
+            background: radial-gradient(circle at 30% 30%, #ff8787, #dc2626);
+            transform: scale(1.05);
+        }
+
+        .crank-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 10px;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .outputs-panel {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 25px;
+            min-width: 280px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #2d2d38;
+        }
+
+        .outputs-panel h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--accent-gold);
+            padding-bottom: 8px;
+            color: var(--accent-gold);
+        }
+
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #2d2d38;
+            font-size: 0.95rem;
+        }
+
+        .output-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: #a0aec0;
+            font-weight: 500;
+        }
+
+        .value {
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Antikythera Mechanism Simulator</h1>
+        <p class="subtitle">Click to crank and see the moon phase!</p>
+    </header>
+
+    <div class="container">
+        <div class="simulator-box">
+            <canvas id="mechanismCanvas" width="550" height="550"></canvas>
+            <div class="control-panel">
+                <div class="crank-bulb" id="crankBulb"></div>
+                <div class="crank-label">Crank Input</div>
+            </div>
+        </div>
+
+        <div class="outputs-panel">
+            <h2>Output:</h2>
+            <div class="output-row">
+                <span class="label">Date:</span>
+                <span class="value" id="outDate">Year 1, Day 1</span>
+            </div>
+            <div class="output-row">
+                <span class="label">Day of Year:</span>
+                <span class="value" id="outDay">1</span>
+            </div>
+            <div class="output-row">
+                <span class="label">Sun Angle:</span>
+                <span class="value" id="outSun">0.0°</span>
+            </div>
+            <div class="output-row">
+                <span class="label">Moon Angle:</span>
+                <span class="value" id="outMoon">0.0°</span>
+            </div>
+            <div class="output-row">
+                <span class="label">Moon Phase Angle:</span>
+                <span class="value" id="outMoonPhase">0.0°</span>
+            </div>
+            <div class="output-row">
+                <span class="label">Phase:</span>
+                <span class="value" id="outPhase">New Moon</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mechanismCanvas');
+        const ctx = canvas.getContext('2d');
+        const crankBulb = document.getElementById('crankBulb');
+
+        // Output DOM references
+        const outDate = document.getElementById('outDate');
+        const outDay = document.getElementById('outDay');
+        const outSun = document.getElementById('outSun');
+        const outMoon = document.getElementById('outMoon');
+        const outMoonPhase = document.getElementById('outMoonPhase');
+        const outPhase = document.getElementById('outPhase');
+
+        // State variables
+        let isCranking = false;
+let baseAngle = 0;
+
+let spinSpeed = 0;
+const maxSpeed = 0.08;
+const acceleration = 0.0001;
+const friction = 0.0005;
+
+        // Activation toggle on Hover (per instructions)
+        crankBulb.addEventListener('mousedown', () => {
+    isCranking = true;
+});
+
+window.addEventListener('mouseup', () => {
+    isCranking = false;
+});
+
+crankBulb.addEventListener('touchstart', () => {
+    isCranking = true;
+});
+
+window.addEventListener('touchend', () => {
+    isCranking = false;
+});
+
+        // Gear Configuration matching proper physical ratios & exact center alignment
+        // Ratios loosely mimic the foundational solar/lunar trains (e.g. 19 years, Metonic cycles)
+        const gears = [
+            { id: 'main_sun', x: 275, y: 275, radius: 100, teeth: 64, color: '#d4af37', speedMult: 1, direction: 1 },
+            { id: 'inter_1', x: 275, y: 145, radius: 28, teeth: 18, color: '#cd7f32', speedMult: -64/18, direction: -1 },
+            { id: 'inter_2', x: 218, y: 122, radius: 38, teeth: 24, color: '#b87333', speedMult: (-64/18) * (-18/24), direction: 1 },
+            { id: 'moon_driver', x: 218, y: 122, radius: 16, teeth: 12, color: '#8a9a86', speedMult: (-64/18) * (-18/24), direction: 1 },
+            { id: 'moon_final', x: 275, y: 275, radius: 76, teeth: 48, color: '#c0c0c0', speedMult: ((-64/18) * (-18/24)) * (-12/48), direction: -1 }
+        ];
+
+        // Ensure perfect alignment for realistic touching/meshing
+        // inter_1 touches main_sun: distance = 100 + 28 = 128 (y: 275 - 128 = 147) -> corrected below
+        gears[1].y = gears[0].y - (gears[0].radius + gears[1].radius); 
+
+        // inter_2 touches inter_1: angle specified to make it layout organically
+        const angle1_2 = 160 * Math.PI / 180; 
+        const dist1_2 = gears[1].radius + gears[2].radius;
+        gears[2].x = gears[1].x + Math.cos(angle1_2) * dist1_2;
+        gears[2].y = gears[1].y + Math.sin(angle1_2) * dist1_2;
+
+        // moon_driver is coaxial with inter_2
+        gears[3].x = gears[2].x;
+        gears[3].y = gears[2].y;
+
+        // moon_final centers back at (275, 275). We adjust its radius to mesh cleanly with moon_driver
+        const dist3_to_center = Math.hypot(gears[3].x - gears[0].x, gears[3].y - gears[0].y);
+        gears[4].radius = dist3_to_center - gears[3].radius;
+        // Re-calculate teeth count proportional to radius to maintain beautiful teeth mesh uniformity
+        gears[4].teeth = Math.round(gears[3].teeth * (gears[4].radius / gears[3].radius));
+
+        // Helical/Involute Tooth Drawing Function
+        function drawGear(ctx, gear, currentBaseAngle) {
+            const currentAngle = currentBaseAngle * gear.speedMult;
+            
+            ctx.save();
+            ctx.translate(gear.x, gear.y);
+            ctx.rotate(currentAngle);
+
+            const numTeeth = gear.teeth;
+            const rOuter = gear.radius;
+            const rPitch = rOuter - 4;
+            const rInner = rOuter - 9;
+
+            // Draw Central Hub & Spokes for aesthetic detail
+            ctx.beginPath();
+            ctx.arc(0, 0, rInner, 0, 2 * Math.PI);
+            ctx.fillStyle = gear.color;
+            ctx.globalAlpha = 0.15;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            // Beautiful physical Gear Outline with Actual Teeth
+            ctx.beginPath();
+            for (let i = 0; i < numTeeth; i++) {
+                const angle = (i * 2 * Math.PI) / numTeeth;
+                const nextAngle = ((i + 1) * 2 * Math.PI) / numTeeth;
+                const midAngle = angle + (nextAngle - angle) / 2;
+
+                // Precision teeth configuration forming proper trapezoidal mesh cuts
+                ctx.lineTo(Math.cos(angle) * rInner, Math.sin(angle) * rInner);
+                ctx.lineTo(Math.cos(angle + 0.02) * rPitch, Math.sin(angle + 0.02) * rPitch);
+                ctx.lineTo(Math.cos(midAngle - 0.02) * rOuter, Math.sin(midAngle - 0.02) * rOuter);
+                ctx.lineTo(Math.cos(midAngle + 0.02) * rOuter, Math.sin(midAngle + 0.02) * rOuter);
+                ctx.lineTo(Math.cos(nextAngle - 0.02) * rPitch, Math.sin(nextAngle - 0.02) * rPitch);
+                ctx.lineTo(Math.cos(nextAngle) * rInner, Math.sin(nextAngle) * rInner);
+            }
+            ctx.closePath();
+            
+            // Stylized Metallic Stroke and Fill
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = gear.color;
+            ctx.fillStyle = rgbaFromHex(gear.color, 0.25);
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner Ring/Aesthetics
+            ctx.beginPath();
+            ctx.arc(0, 0, rInner * 0.4, 0, 2 * Math.PI);
+            ctx.strokeStyle = gear.color;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Cutout Spoke Accents
+            if(gear.radius > 30) {
+                ctx.strokeStyle = gear.color;
+                ctx.lineWidth = 3;
+                for(let s=0; s<4; s++) {
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(s * Math.PI/2) * (rInner * 0.4), Math.sin(s * Math.PI/2) * (rInner * 0.4));
+                    ctx.lineTo(Math.cos(s * Math.PI/2) * (rInner * 0.8), Math.sin(s * Math.PI/2) * (rInner * 0.8));
+                    ctx.stroke();
+                }
+            }
+
+            // Center Pin
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Helper to convert hex strings to rgba transparency overlays
+        function rgbaFromHex(hex, alpha) {
+            if(hex.startsWith('#')) hex = hex.slice(1);
+            let r = parseInt(hex.substring(0,2), 16);
+            let g = parseInt(hex.substring(2,4), 16);
+            let b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // External Dial ring showcasing Zodiac or Calendar framework
+        function drawOuterRing() {
+            ctx.save();
+            ctx.translate(275, 275);
+            
+            // External Dial Track
+            ctx.beginPath();
+            ctx.arc(0, 0, 240, 0, 2 * Math.PI);
+            ctx.strokeStyle = varColor('--accent-gold');
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 225, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Calibrated Tick Marks
+            for (let a = 0; a < 360; a += 5) {
+                const rad = a * Math.PI / 180;
+                const length = (a % 30 === 0) ? 12 : 6;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(rad) * 240, Math.sin(rad) * 240);
+                ctx.lineTo(Math.cos(rad) * (240 - length), Math.sin(rad) * (240 - length));
+                ctx.strokeStyle = varColor('--accent-gold');
+                ctx.lineWidth = (a % 30 === 0) ? 2 : 1;
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Visual Hands pointing out Celestial Alignment positions
+        function drawHands() {
+
+    const sunAngle = baseAngle;
+
+    const moonAngle =
+        baseAngle * 13.368266 +
+        (6 * Math.sin(baseAngle * 13.368266)) *
+        Math.PI / 180;
+
+    // Sun Pointer
+    ctx.save();
+    ctx.translate(275, 275);
+    ctx.rotate(sunAngle);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(220, 0);
+    ctx.strokeStyle = varColor('--accent-gold');
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(200, 0, 7, 0, 2 * Math.PI);
+    ctx.fillStyle = varColor('--accent-gold');
+    ctx.fill();
+
+    ctx.restore();
+
+    // Moon Pointer
+    ctx.save();
+    ctx.translate(275, 275);
+    ctx.rotate(moonAngle);
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(190, 0);
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(175, 0, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fill();
+
+    ctx.restore();
+}
+
+        function varColor(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        // Metrics calculations mapping timeline positioning data
+        function updateStatusMetrics() {
+
+    // Realistic solar/lunar motion
+    const daysElapsed =
+        (baseAngle / (2 * Math.PI)) * 365.2422;
+
+    const absoluteYear =
+        Math.floor(daysElapsed / 365.2422) + 1;
+
+    const dayOfYear =
+        Math.floor(daysElapsed % 365.2422) + 1;
+
+    // Sun completes 1 revolution/year
+    const sunDeg =
+        ((baseAngle * 180 / Math.PI) % 360 + 360) % 360;
+
+    // Moon completes ~13.368 sidereal revolutions/year
+    let moonDeg =
+        ((baseAngle * 13.368266 * 180 / Math.PI) % 360 + 360) % 360;
+
+    // Antikythera-inspired lunar anomaly
+    moonDeg +=
+        6 * Math.sin(baseAngle * 13.368266);
+
+    moonDeg =
+        ((moonDeg % 360) + 360) % 360;
+
+    const phaseDiff =
+        (moonDeg - sunDeg + 360) % 360;
+
+    let phaseText = "New Moon";
+
+    if (phaseDiff >= 22.5 && phaseDiff < 67.5)
+        phaseText = "Waxing Crescent";
+    else if (phaseDiff >= 67.5 && phaseDiff < 112.5)
+        phaseText = "First Quarter";
+    else if (phaseDiff >= 112.5 && phaseDiff < 157.5)
+        phaseText = "Waxing Gibbous";
+    else if (phaseDiff >= 157.5 && phaseDiff < 202.5)
+        phaseText = "Full Moon";
+    else if (phaseDiff >= 202.5 && phaseDiff < 247.5)
+        phaseText = "Waning Gibbous";
+    else if (phaseDiff >= 247.5 && phaseDiff < 292.5)
+        phaseText = "Third Quarter";
+    else if (phaseDiff >= 292.5 && phaseDiff < 337.5)
+        phaseText = "Waning Crescent";
+
+    outDate.textContent =
+        `Year ${absoluteYear}, Day ${dayOfYear}`;
+
+    outDay.textContent = dayOfYear;
+    outSun.textContent = sunDeg.toFixed(1) + "°";
+    outMoon.textContent = moonDeg.toFixed(1) + "°";
+    outMoonPhase.textContent = phaseDiff.toFixed(1) + "°";
+    outPhase.textContent = phaseText;
+}
+
+        // Unified Engine Animation Frame Runner
+        function loop() {
+const glow = spinSpeed / maxSpeed;
+
+crankBulb.style.boxShadow =
+    `0 4px 10px rgba(0,0,0,0.5),
+     0 0 ${10 + glow * 40}px rgba(239,68,68,${0.3 + glow * 0.7})`;
+
+crankBulb.style.transform =
+    `scale(${1 + glow * 0.15})`;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Execute incremental layout update if user hovers over Red Bulb
+            if (isCranking) {
+    spinSpeed += acceleration;
+
+    if (spinSpeed > maxSpeed) {
+        spinSpeed = maxSpeed;
+    }
+} else {
+    spinSpeed *= 0.85;
+
+    if (spinSpeed < 0.0001) {
+        spinSpeed = 0;
+    }
+}
+
+baseAngle += spinSpeed;
+
+if (spinSpeed > 0) {
+    updateStatusMetrics();
+}
+
+            // Draw background structure grid layers
+            drawOuterRing();
+
+            // Render all configured touching mechanical components
+            gears.forEach(gear => drawGear(ctx, gear, baseAngle));
+
+            // Layer indicator tracking elements cleanly over cogs
+            drawHands();
+
+            requestAnimationFrame(loop);
+        }
+
+        // Initialize Execution Frame
+        loop();
+    </script>
+</body>
+</html>
