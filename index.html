@@ -1,549 +1,383 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!doctypehtml>
+  <html lang=en>
+    <meta charset=UTF-8>
+    <meta content="width=device-width,initial-scale=1" name=viewport>
     <title>Antikythera Mechanism Simulator</title>
     <style>
-        :root {
-            --bg-color: #121214;
-            --panel-bg: #1e1e24;
-            --text-color: #e2e8f0;
-            --accent-gold: #d4af37;
-            --accent-bronze: #cd7f32;
-            --bulb-red: #ef4444;
-            --bulb-glow: rgba(239, 68, 68, 0.4);
-        }
+      :root {
+        --bg-color: #121214;
+        --panel-bg: #1e1e24;
+        --text-color: #e2e8f0;
+        --accent-gold: #d4af37;
+        --accent-bronze: #cd7f32;
+        --bulb-red: #ef4444;
+        --bulb-glow: rgba(239, 68, 68, 0.4)
+      }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: auto
+      }
 
-        header {
-            margin-top: 20px;
-            text-align: center;
-        }
+      header {
+        margin-top: 20px;
+        text-align: center
+      }
 
-        h1 {
-            margin: 0;
-            font-size: 2rem;
-            color: var(--accent-gold);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            letter-spacing: 1px;
-        }
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        color: var(--accent-gold);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, .5);
+        letter-spacing: 1px
+      }
 
-        .subtitle {
-            margin: 5px 0 20px 0;
-            font-size: 0.9rem;
-            color: #a0aec0;
-        }
+      .subtitle {
+        margin: 5px 0 20px 0;
+        font-size: .9rem;
+        color: #a0aec0
+      }
 
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            max-width: 1100px;
-            width: 90%;
-            justify-content: center;
-            align-items: flex-start;
-            margin-bottom: 30px;
-        }
+      .container {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 30px;
+        width: max-content;
+        max-width: none;
+        justify-content: center;
+        align-items: flex-start;
+        margin-bottom: 30px
+      }
 
-        .simulator-box {
-            position: relative;
-            background: radial-gradient(circle, #2a2a35 0%, #1a1a22 100%);
-            border: 3px solid var(--accent-bronze);
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+      .simulator-box {
+        position: relative;
+        background: radial-gradient(circle, #2a2a35 0, #1a1a22 100%);
+        border: 3px solid var(--accent-bronze);
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .7);
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center
+      }
 
-        canvas {
-            background-color: transparent;
-            border-radius: 8px;
-        }
+      canvas {
+        background-color: transparent;
+        border-radius: 8px
+      }
 
-        .control-panel {
-            position: absolute;
-            bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            z-index: 10;
-        }
+      .control-panel {
+        position: absolute;
+        bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        z-index: 10
+      }
 
-        .crank-bulb {
-            width: 44px;
-            height: 44px;
-            background: radial-gradient(circle at 30% 30%, #ff6b6b, #b91c1c);
-            border: 2px solid #7f1d1d;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 0px var(--bulb-glow);
-            transition: transform 0.1s, box-shadow 0.3s;
-        }
+      .crank-bulb {
+        width: 44px;
+        height: 44px;
+        background: radial-gradient(circle at 30% 30%, #ff6b6b, #b91c1c);
+        border: 2px solid #7f1d1d;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, .5), 0 0 0 var(--bulb-glow);
+        transition: transform .1s, box-shadow .3s
+      }
 
-        .crank-bulb:hover {
-            box-shadow: 0 6px 15px rgba(0,0,0,0.6), 0 0 20px var(--bulb-red);
-            background: radial-gradient(circle at 30% 30%, #ff8787, #dc2626);
-            transform: scale(1.05);
-        }
+      .crank-bulb:hover {
+        box-shadow: 0 6px 15px rgba(0, 0, 0, .6), 0 0 20px var(--bulb-red);
+        background: radial-gradient(circle at 30% 30%, #ff8787, #dc2626);
+        transform: scale(1.05)
+      }
 
-        .crank-label {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: rgba(0,0,0,0.7);
-            padding: 2px 8px;
-            border-radius: 10px;
-            pointer-events: none;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
+      .crank-label {
+        font-size: .75rem;
+        font-weight: 700;
+        color: #fff;
+        background-color: rgba(0, 0, 0, .7);
+        padding: 2px 8px;
+        border-radius: 10px;
+        pointer-events: none;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        border: 1px solid rgba(255, 255, 255, .1)
+      }
 
-        .outputs-panel {
-            background-color: var(--panel-bg);
-            border-radius: 12px;
-            padding: 25px;
-            min-width: 280px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid #2d2d38;
-        }
+      .outputs-panel {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        padding: 25px;
+        min-width: 280px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .5);
+        border: 1px solid #2d2d38
+      }
 
-        .outputs-panel h2 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.4rem;
-            border-bottom: 2px solid var(--accent-gold);
-            padding-bottom: 8px;
-            color: var(--accent-gold);
-        }
+      .outputs-panel h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.4rem;
+        border-bottom: 2px solid var(--accent-gold);
+        padding-bottom: 8px;
+        color: var(--accent-gold)
+      }
 
-        .output-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #2d2d38;
-            font-size: 0.95rem;
-        }
+      .output-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #2d2d38;
+        font-size: .95rem
+      }
 
-        .output-row:last-child {
-            border-bottom: none;
-        }
+      .output-row:last-child {
+        border-bottom: none
+      }
 
-        .label {
-            color: #a0aec0;
-            font-weight: 500;
-        }
+      .history-panel {
+        background-color: var(--panel-bg);
+        border-radius: 12px;
+        padding: 25px;
+        width: 320px;
+        min-width: 320px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .5);
+        border: 1px solid #2d2d38;
+        display: flex;
+        flex-direction: column;
+        gap: 10px
+      }
 
-        .value {
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-        }
+      .history-panel h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: var(--accent-gold);
+        border-bottom: 2px solid var(--accent-gold);
+        padding-bottom: 8px
+      }
+
+      .roman-date {
+        background: #252530;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition: all .25s ease
+      }
+
+      .roman-date:hover {
+        background: #353545;
+        border-color: var(--accent-gold);
+        transform: translateX(4px)
+      }
+
+      .label {
+        color: #a0aec0;
+        font-weight: 500
+      }
+
+      .value {
+        color: #fff;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 700
+      }
     </style>
-</head>
-<body>
-
     <header>
-        <h1>Antikythera Mechanism Simulator</h1>
-        <p class="subtitle">Click to crank and see the moon phase!</p>
+      <h1>Antikythera Mechanism Simulator</h1>
+      <p class=subtitle>Click to crank and see the moon phase!
     </header>
-
-    <div class="container">
-        <div class="simulator-box">
-            <canvas id="mechanismCanvas" width="550" height="550"></canvas>
-            <div class="control-panel">
-                <div class="crank-bulb" id="crankBulb"></div>
-                <div class="crank-label">Crank Input</div>
-            </div>
+    <div class=container>
+      <div class=history-panel>
+        <h2>Roman Dates</h2><button class=roman-date data-year=-753>753 BC • Founding of Rome</button><button class=roman-date data-year=-509>509 BC • Republic Founded</button><button class=roman-date data-year=-264>264 BC • First Punic War</button><button class=roman-date data-year=-44>44 BC • Ides of March</button><button class=roman-date data-year=-27>27 BC • Augustus Becomes Emperor</button><button class=roman-date data-year=117>AD 117 • Greatest Extent</button><button class=roman-date data-year=476>AD 476 • Fall of Western Empire</button>
+      </div>
+      <div class=simulator-box><canvas height=550 id=mechanismCanvas width=550></canvas>
+        <div class=control-panel>
+          <div class=crank-bulb id=crankBulb></div>
+          <div class=crank-label>Crank Input</div>
         </div>
-
-        <div class="outputs-panel">
-            <h2>Output:</h2>
-            <div class="output-row">
-                <span class="label">Date:</span>
-                <span class="value" id="outDate">Year 1, Day 1</span>
-            </div>
-            <div class="output-row">
-                <span class="label">Day of Year:</span>
-                <span class="value" id="outDay">1</span>
-            </div>
-            <div class="output-row">
-                <span class="label">Sun Angle:</span>
-                <span class="value" id="outSun">0.0°</span>
-            </div>
-            <div class="output-row">
-                <span class="label">Moon Angle:</span>
-                <span class="value" id="outMoon">0.0°</span>
-            </div>
-            <div class="output-row">
-                <span class="label">Moon Phase Angle:</span>
-                <span class="value" id="outMoonPhase">0.0°</span>
-            </div>
-            <div class="output-row">
-                <span class="label">Phase:</span>
-                <span class="value" id="outPhase">New Moon</span>
-            </div>
-        </div>
+      </div>
+      <div class=outputs-panel>
+        <h2>Output:</h2>
+        <div class=output-row><span class=label>Date:</span><span class=value id=outDate>Year 1, Day 1</span></div>
+        <div class=output-row><span class=label>Day of Year:</span><span class=value id=outDay>1</span></div>
+        <div class=output-row><span class=label>Sun Angle:</span><span class=value id=outSun>0.0°</span></div>
+        <div class=output-row><span class=label>Moon Angle:</span><span class=value id=outMoon>0.0°</span></div>
+        <div class=output-row><span class=label>Moon Phase Angle:</span><span class=value id=outMoonPhase>0.0°</span></div>
+        <div class=output-row><span class=label>Phase:</span><span class=value id=outPhase>New Moon</span></div>
+      </div>
     </div>
-
     <script>
-        const canvas = document.getElementById('mechanismCanvas');
-        const ctx = canvas.getContext('2d');
-        const crankBulb = document.getElementById('crankBulb');
+      const canvas = document.getElementById("mechanismCanvas"),
+        ctx = canvas.getContext("2d"),
+        crankBulb = document.getElementById("crankBulb"),
+        outDate = document.getElementById("outDate"),
+        outDay = document.getElementById("outDay"),
+        outSun = document.getElementById("outSun"),
+        outMoon = document.getElementById("outMoon"),
+        outMoonPhase = document.getElementById("outMoonPhase"),
+        outPhase = document.getElementById("outPhase");
+      let isCranking = !1,
+        baseAngle = 0,
+        targetAngle = null,
+        isAutoSpinning = !1,
+        spinSpeed = 0,
+        selectedRomanYear = null;
+      const maxSpeed = .08,
+        acceleration = 1e-4,
+        friction = 5e-4;
+      crankBulb.addEventListener("mousedown", () => {
+        isCranking = !0
+      }), window.addEventListener("mouseup", () => {
+        isCranking = !1
+      }), crankBulb.addEventListener("touchstart", () => {
+        isCranking = !0
+      }), window.addEventListener("touchend", () => {
+        isCranking = !1
+      });
+      const gears = [{
+        id: "main_sun",
+        x: 275,
+        y: 275,
+        radius: 100,
+        teeth: 64,
+        color: "#d4af37",
+        speedMult: 1,
+        direction: 1
+      }, {
+        id: "inter_1",
+        x: 275,
+        y: 145,
+        radius: 28,
+        teeth: 18,
+        color: "#cd7f32",
+        speedMult: -64 / 18,
+        direction: -1
+      }, {
+        id: "inter_2",
+        x: 218,
+        y: 122,
+        radius: 38,
+        teeth: 24,
+        color: "#b87333",
+        speedMult: -64 / 18 * -.75,
+        direction: 1
+      }, {
+        id: "moon_driver",
+        x: 218,
+        y: 122,
+        radius: 16,
+        teeth: 12,
+        color: "#8a9a86",
+        speedMult: -64 / 18 * -.75,
+        direction: 1
+      }, {
+        id: "moon_final",
+        x: 275,
+        y: 275,
+        radius: 76,
+        teeth: 48,
+        color: "#c0c0c0",
+        speedMult: -64 / 18 * -.75 * -.25,
+        direction: -1
+      }];
+      gears[1].y = gears[0].y - (gears[0].radius + gears[1].radius);
+      const angle1_2 = 160 * Math.PI / 180,
+        dist1_2 = gears[1].radius + gears[2].radius;
+      gears[2].x = gears[1].x + Math.cos(angle1_2) * dist1_2, gears[2].y = gears[1].y + Math.sin(angle1_2) * dist1_2, gears[3].x = gears[2].x, gears[3].y = gears[2].y;
+      const dist3_to_center = Math.hypot(gears[3].x - gears[0].x, gears[3].y - gears[0].y);
 
-        // Output DOM references
-        const outDate = document.getElementById('outDate');
-        const outDay = document.getElementById('outDay');
-        const outSun = document.getElementById('outSun');
-        const outMoon = document.getElementById('outMoon');
-        const outMoonPhase = document.getElementById('outMoonPhase');
-        const outPhase = document.getElementById('outPhase');
-
-        // State variables
-        let isCranking = false;
-let baseAngle = 0;
-
-let spinSpeed = 0;
-const maxSpeed = 0.08;
-const acceleration = 0.0001;
-const friction = 0.0005;
-
-        // Activation toggle on Hover (per instructions)
-        crankBulb.addEventListener('mousedown', () => {
-    isCranking = true;
-});
-
-window.addEventListener('mouseup', () => {
-    isCranking = false;
-});
-
-crankBulb.addEventListener('touchstart', () => {
-    isCranking = true;
-});
-
-window.addEventListener('touchend', () => {
-    isCranking = false;
-});
-
-        // Gear Configuration matching proper physical ratios & exact center alignment
-        // Ratios loosely mimic the foundational solar/lunar trains (e.g. 19 years, Metonic cycles)
-        const gears = [
-            { id: 'main_sun', x: 275, y: 275, radius: 100, teeth: 64, color: '#d4af37', speedMult: 1, direction: 1 },
-            { id: 'inter_1', x: 275, y: 145, radius: 28, teeth: 18, color: '#cd7f32', speedMult: -64/18, direction: -1 },
-            { id: 'inter_2', x: 218, y: 122, radius: 38, teeth: 24, color: '#b87333', speedMult: (-64/18) * (-18/24), direction: 1 },
-            { id: 'moon_driver', x: 218, y: 122, radius: 16, teeth: 12, color: '#8a9a86', speedMult: (-64/18) * (-18/24), direction: 1 },
-            { id: 'moon_final', x: 275, y: 275, radius: 76, teeth: 48, color: '#c0c0c0', speedMult: ((-64/18) * (-18/24)) * (-12/48), direction: -1 }
-        ];
-
-        // Ensure perfect alignment for realistic touching/meshing
-        // inter_1 touches main_sun: distance = 100 + 28 = 128 (y: 275 - 128 = 147) -> corrected below
-        gears[1].y = gears[0].y - (gears[0].radius + gears[1].radius); 
-
-        // inter_2 touches inter_1: angle specified to make it layout organically
-        const angle1_2 = 160 * Math.PI / 180; 
-        const dist1_2 = gears[1].radius + gears[2].radius;
-        gears[2].x = gears[1].x + Math.cos(angle1_2) * dist1_2;
-        gears[2].y = gears[1].y + Math.sin(angle1_2) * dist1_2;
-
-        // moon_driver is coaxial with inter_2
-        gears[3].x = gears[2].x;
-        gears[3].y = gears[2].y;
-
-        // moon_final centers back at (275, 275). We adjust its radius to mesh cleanly with moon_driver
-        const dist3_to_center = Math.hypot(gears[3].x - gears[0].x, gears[3].y - gears[0].y);
-        gears[4].radius = dist3_to_center - gears[3].radius;
-        // Re-calculate teeth count proportional to radius to maintain beautiful teeth mesh uniformity
-        gears[4].teeth = Math.round(gears[3].teeth * (gears[4].radius / gears[3].radius));
-
-        // Helical/Involute Tooth Drawing Function
-        function drawGear(ctx, gear, currentBaseAngle) {
-            const currentAngle = currentBaseAngle * gear.speedMult;
-            
-            ctx.save();
-            ctx.translate(gear.x, gear.y);
-            ctx.rotate(currentAngle);
-
-            const numTeeth = gear.teeth;
-            const rOuter = gear.radius;
-            const rPitch = rOuter - 4;
-            const rInner = rOuter - 9;
-
-            // Draw Central Hub & Spokes for aesthetic detail
-            ctx.beginPath();
-            ctx.arc(0, 0, rInner, 0, 2 * Math.PI);
-            ctx.fillStyle = gear.color;
-            ctx.globalAlpha = 0.15;
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-
-            // Beautiful physical Gear Outline with Actual Teeth
-            ctx.beginPath();
-            for (let i = 0; i < numTeeth; i++) {
-                const angle = (i * 2 * Math.PI) / numTeeth;
-                const nextAngle = ((i + 1) * 2 * Math.PI) / numTeeth;
-                const midAngle = angle + (nextAngle - angle) / 2;
-
-                // Precision teeth configuration forming proper trapezoidal mesh cuts
-                ctx.lineTo(Math.cos(angle) * rInner, Math.sin(angle) * rInner);
-                ctx.lineTo(Math.cos(angle + 0.02) * rPitch, Math.sin(angle + 0.02) * rPitch);
-                ctx.lineTo(Math.cos(midAngle - 0.02) * rOuter, Math.sin(midAngle - 0.02) * rOuter);
-                ctx.lineTo(Math.cos(midAngle + 0.02) * rOuter, Math.sin(midAngle + 0.02) * rOuter);
-                ctx.lineTo(Math.cos(nextAngle - 0.02) * rPitch, Math.sin(nextAngle - 0.02) * rPitch);
-                ctx.lineTo(Math.cos(nextAngle) * rInner, Math.sin(nextAngle) * rInner);
-            }
-            ctx.closePath();
-            
-            // Stylized Metallic Stroke and Fill
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = gear.color;
-            ctx.fillStyle = rgbaFromHex(gear.color, 0.25);
-            ctx.fill();
-            ctx.stroke();
-
-            // Inner Ring/Aesthetics
-            ctx.beginPath();
-            ctx.arc(0, 0, rInner * 0.4, 0, 2 * Math.PI);
-            ctx.strokeStyle = gear.color;
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Cutout Spoke Accents
-            if(gear.radius > 30) {
-                ctx.strokeStyle = gear.color;
-                ctx.lineWidth = 3;
-                for(let s=0; s<4; s++) {
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(s * Math.PI/2) * (rInner * 0.4), Math.sin(s * Math.PI/2) * (rInner * 0.4));
-                    ctx.lineTo(Math.cos(s * Math.PI/2) * (rInner * 0.8), Math.sin(s * Math.PI/2) * (rInner * 0.8));
-                    ctx.stroke();
-                }
-            }
-
-            // Center Pin
-            ctx.beginPath();
-            ctx.arc(0, 0, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-
-            ctx.restore();
+      function drawGear(e, t, a) {
+        a *= t.speedMult;
+        e.save(), e.translate(t.x, t.y), e.rotate(a);
+        var n = t.teeth,
+          o = t.radius,
+          s = o - 4,
+          r = o - 9;
+        e.beginPath(), e.arc(0, 0, r, 0, 2 * Math.PI), e.fillStyle = t.color, e.globalAlpha = .15, e.fill(), e.globalAlpha = 1, e.beginPath();
+        for (let t = 0; t < n; t++) {
+          var i = 2 * t * Math.PI / n,
+            l = 2 * (t + 1) * Math.PI / n,
+            c = i + (l - i) / 2;
+          e.lineTo(Math.cos(i) * r, Math.sin(i) * r), e.lineTo(Math.cos(.02 + i) * s, Math.sin(.02 + i) * s), e.lineTo(Math.cos(c - .02) * o, Math.sin(c - .02) * o), e.lineTo(Math.cos(.02 + c) * o, Math.sin(.02 + c) * o), e.lineTo(Math.cos(l - .02) * s, Math.sin(l - .02) * s), e.lineTo(Math.cos(l) * r, Math.sin(l) * r)
         }
-
-        // Helper to convert hex strings to rgba transparency overlays
-        function rgbaFromHex(hex, alpha) {
-            if(hex.startsWith('#')) hex = hex.slice(1);
-            let r = parseInt(hex.substring(0,2), 16);
-            let g = parseInt(hex.substring(2,4), 16);
-            let b = parseInt(hex.substring(4,6), 16);
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        if (e.closePath(), e.lineWidth = 2, e.strokeStyle = t.color, e.fillStyle = rgbaFromHex(t.color, .25), e.fill(), e.stroke(), e.beginPath(), e.arc(0, 0, .4 * r, 0, 2 * Math.PI), e.strokeStyle = t.color, e.lineWidth = 1.5, e.stroke(), 30 < t.radius) {
+          e.strokeStyle = t.color, e.lineWidth = 3;
+          for (let t = 0; t < 4; t++) e.beginPath(), e.moveTo(Math.cos(t * Math.PI / 2) * (.4 * r), Math.sin(t * Math.PI / 2) * (.4 * r)), e.lineTo(Math.cos(t * Math.PI / 2) * (.8 * r), Math.sin(t * Math.PI / 2) * (.8 * r)), e.stroke()
         }
+        e.beginPath(), e.arc(0, 0, 5, 0, 2 * Math.PI), e.fillStyle = "#fff", e.fill(), e.restore()
+      }
 
-        // External Dial ring showcasing Zodiac or Calendar framework
-        function drawOuterRing() {
-            ctx.save();
-            ctx.translate(275, 275);
-            
-            // External Dial Track
-            ctx.beginPath();
-            ctx.arc(0, 0, 240, 0, 2 * Math.PI);
-            ctx.strokeStyle = varColor('--accent-gold');
-            ctx.lineWidth = 6;
-            ctx.stroke();
+      function rgbaFromHex(t, e) {
+        return t.startsWith("#") && (t = t.slice(1)), `rgba(${parseInt(t.substring(0,2),16)}, ${parseInt(t.substring(2,4),16)}, ${parseInt(t.substring(4,6),16)}, ${e})`
+      }
 
-            ctx.beginPath();
-            ctx.arc(0, 0, 225, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            // Calibrated Tick Marks
-            for (let a = 0; a < 360; a += 5) {
-                const rad = a * Math.PI / 180;
-                const length = (a % 30 === 0) ? 12 : 6;
-                ctx.beginPath();
-                ctx.moveTo(Math.cos(rad) * 240, Math.sin(rad) * 240);
-                ctx.lineTo(Math.cos(rad) * (240 - length), Math.sin(rad) * (240 - length));
-                ctx.strokeStyle = varColor('--accent-gold');
-                ctx.lineWidth = (a % 30 === 0) ? 2 : 1;
-                ctx.stroke();
-            }
-            ctx.restore();
+      function drawOuterRing() {
+        ctx.save(), ctx.translate(275, 275), ctx.beginPath(), ctx.arc(0, 0, 240, 0, 2 * Math.PI), ctx.strokeStyle = varColor("--accent-gold"), ctx.lineWidth = 6, ctx.stroke(), ctx.beginPath(), ctx.arc(0, 0, 225, 0, 2 * Math.PI), ctx.strokeStyle = "rgba(212, 175, 55, 0.3)", ctx.lineWidth = 1, ctx.stroke();
+        for (let t = 0; t < 360; t += 5) {
+          var e = t * Math.PI / 180,
+            a = t % 30 == 0 ? 12 : 6;
+          ctx.beginPath(), ctx.moveTo(240 * Math.cos(e), 240 * Math.sin(e)), ctx.lineTo(Math.cos(e) * (240 - a), Math.sin(e) * (240 - a)), ctx.strokeStyle = varColor("--accent-gold"), ctx.lineWidth = t % 30 == 0 ? 2 : 1, ctx.stroke()
         }
+        ctx.restore()
+      }
 
-        // Visual Hands pointing out Celestial Alignment positions
-        function drawHands() {
+      function drawHands() {
+        var t = baseAngle,
+          e = 13.368266 * baseAngle + 6 * Math.sin(13.368266 * baseAngle) * Math.PI / 180;
+        ctx.save(), ctx.translate(275, 275), ctx.rotate(t), ctx.beginPath(), ctx.moveTo(0, 0), ctx.lineTo(220, 0), ctx.strokeStyle = varColor("--accent-gold"), ctx.lineWidth = 3, ctx.stroke(), ctx.beginPath(), ctx.arc(200, 0, 7, 0, 2 * Math.PI), ctx.fillStyle = varColor("--accent-gold"), ctx.fill(), ctx.restore(), ctx.save(), ctx.translate(275, 275), ctx.rotate(e), ctx.beginPath(), ctx.moveTo(0, 0), ctx.lineTo(190, 0), ctx.strokeStyle = "#cbd5e1", ctx.lineWidth = 2.5, ctx.stroke(), ctx.beginPath(), ctx.arc(175, 0, 5, 0, 2 * Math.PI), ctx.fillStyle = "#cbd5e1", ctx.fill(), ctx.restore()
+      }
 
-    const sunAngle = baseAngle;
+      function varColor(t) {
+        return getComputedStyle(document.documentElement).getPropertyValue(t).trim()
+      }
 
-    const moonAngle =
-        baseAngle * 13.368266 +
-        (6 * Math.sin(baseAngle * 13.368266)) *
-        Math.PI / 180;
+      function updateStatusMetrics() {
+        var t = baseAngle / (2 * Math.PI) * 365.2422,
+          e = (Math.floor(t / 365.2422), Math.floor(t % 365.2422) + 1);
+        const a = (180 * baseAngle / Math.PI % 360 + 360) % 360;
+        let n = (13.368266 * baseAngle * 180 / Math.PI % 360 + 360) % 360;
+        n += 6 * Math.sin(13.368266 * baseAngle), n = (n % 360 + 360) % 360;
+        const o = (n - a + 360) % 360;
+        let s = "New Moon";
+        22.5 <= o && o < 67.5 ? s = "Waxing Crescent" : 67.5 <= o && o < 112.5 ? s = "First Quarter" : 112.5 <= o && o < 157.5 ? s = "Waxing Gibbous" : 157.5 <= o && o < 202.5 ? s = "Full Moon" : 202.5 <= o && o < 247.5 ? s = "Waning Gibbous" : 247.5 <= o && o < 292.5 ? s = "Third Quarter" : 292.5 <= o && o < 337.5 && (s = "Waning Crescent");
+        t = Math.max(0, Math.min(baseAngle, 12 * Math.PI)), t = Math.round(t / (12 * Math.PI) * 1229 - 753);
+        outDate.textContent = t < 0 ? `${Math.abs(t)} BC` : `AD ${t}`, outDay.textContent = e, outSun.textContent = a.toFixed(1) + "°", outMoon.textContent = n.toFixed(1) + "°", outMoonPhase.textContent = o.toFixed(1) + "°", outPhase.textContent = s
+      }
+      gears[4].radius = dist3_to_center - gears[3].radius, gears[4].teeth = Math.round(gears[3].teeth * (gears[4].radius / gears[3].radius));
+      const romanEvents = {
+          "-753": "Founding of Rome",
+          "-509": "Roman Republic Founded",
+          "-264": "First Punic War Begins",
+          "-44": "Ides of March - Julius Caesar Assassinated",
+          27: "Augustus Becomes First Emperor",
+          117: "Roman Empire at Greatest Extent",
+          476: "Fall of Western Roman Empire"
+        },
+        START_YEAR = -753,
+        END_YEAR = 476,
+        TOTAL_YEARS = END_YEAR - START_YEAR;
 
-    // Sun Pointer
-    ctx.save();
-    ctx.translate(275, 275);
-    ctx.rotate(sunAngle);
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(220, 0);
-    ctx.strokeStyle = varColor('--accent-gold');
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(200, 0, 7, 0, 2 * Math.PI);
-    ctx.fillStyle = varColor('--accent-gold');
-    ctx.fill();
-
-    ctx.restore();
-
-    // Moon Pointer
-    ctx.save();
-    ctx.translate(275, 275);
-    ctx.rotate(moonAngle);
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(190, 0);
-    ctx.strokeStyle = '#cbd5e1';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(175, 0, 5, 0, 2 * Math.PI);
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fill();
-
-    ctx.restore();
-}
-
-        function varColor(name) {
-            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        }
-
-        // Metrics calculations mapping timeline positioning data
-        function updateStatusMetrics() {
-
-    // Realistic solar/lunar motion
-    const daysElapsed =
-        (baseAngle / (2 * Math.PI)) * 365.2422;
-
-    const absoluteYear =
-        Math.floor(daysElapsed / 365.2422) + 1;
-
-    const dayOfYear =
-        Math.floor(daysElapsed % 365.2422) + 1;
-
-    // Sun completes 1 revolution/year
-    const sunDeg =
-        ((baseAngle * 180 / Math.PI) % 360 + 360) % 360;
-
-    // Moon completes ~13.368 sidereal revolutions/year
-    let moonDeg =
-        ((baseAngle * 13.368266 * 180 / Math.PI) % 360 + 360) % 360;
-
-    // Antikythera-inspired lunar anomaly
-    moonDeg +=
-        6 * Math.sin(baseAngle * 13.368266);
-
-    moonDeg =
-        ((moonDeg % 360) + 360) % 360;
-
-    const phaseDiff =
-        (moonDeg - sunDeg + 360) % 360;
-
-    let phaseText = "New Moon";
-
-    if (phaseDiff >= 22.5 && phaseDiff < 67.5)
-        phaseText = "Waxing Crescent";
-    else if (phaseDiff >= 67.5 && phaseDiff < 112.5)
-        phaseText = "First Quarter";
-    else if (phaseDiff >= 112.5 && phaseDiff < 157.5)
-        phaseText = "Waxing Gibbous";
-    else if (phaseDiff >= 157.5 && phaseDiff < 202.5)
-        phaseText = "Full Moon";
-    else if (phaseDiff >= 202.5 && phaseDiff < 247.5)
-        phaseText = "Waning Gibbous";
-    else if (phaseDiff >= 247.5 && phaseDiff < 292.5)
-        phaseText = "Third Quarter";
-    else if (phaseDiff >= 292.5 && phaseDiff < 337.5)
-        phaseText = "Waning Crescent";
-
-    outDate.textContent =
-        `Year ${absoluteYear}, Day ${dayOfYear}`;
-
-    outDay.textContent = dayOfYear;
-    outSun.textContent = sunDeg.toFixed(1) + "°";
-    outMoon.textContent = moonDeg.toFixed(1) + "°";
-    outMoonPhase.textContent = phaseDiff.toFixed(1) + "°";
-    outPhase.textContent = phaseText;
-}
-
-        // Unified Engine Animation Frame Runner
-        function loop() {
-const glow = spinSpeed / maxSpeed;
-
-crankBulb.style.boxShadow =
-    `0 4px 10px rgba(0,0,0,0.5),
-     0 0 ${10 + glow * 40}px rgba(239,68,68,${0.3 + glow * 0.7})`;
-
-crankBulb.style.transform =
-    `scale(${1 + glow * 0.15})`;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Execute incremental layout update if user hovers over Red Bulb
-            if (isCranking) {
-    spinSpeed += acceleration;
-
-    if (spinSpeed > maxSpeed) {
-        spinSpeed = maxSpeed;
-    }
-} else {
-    spinSpeed *= 0.85;
-
-    if (spinSpeed < 0.0001) {
-        spinSpeed = 0;
-    }
-}
-
-baseAngle += spinSpeed;
-
-if (spinSpeed > 0) {
-    updateStatusMetrics();
-}
-
-            // Draw background structure grid layers
-            drawOuterRing();
-
-            // Render all configured touching mechanical components
-            gears.forEach(gear => drawGear(ctx, gear, baseAngle));
-
-            // Layer indicator tracking elements cleanly over cogs
-            drawHands();
-
-            requestAnimationFrame(loop);
-        }
-
-        // Initialize Execution Frame
-        loop();
+      function loop() {
+        var t = spinSpeed / maxSpeed;
+        crankBulb.style.boxShadow = `0 4px 10px rgba(0,0,0,0.5),
+     0 0 ${10+40*t}px rgba(239,68,68,${.3+.7*t})`, crankBulb.style.transform = `scale(${1+.15*t})`, ctx.clearRect(0, 0, canvas.width, canvas.height), isAutoSpinning && null !== targetAngle ? (t = targetAngle - baseAngle, .01 < Math.abs(t) ? (baseAngle += .05 * t, spinSpeed = Math.min(.02 * Math.abs(t), .15)) : (baseAngle = targetAngle, spinSpeed = 0, isAutoSpinning = !1, targetAngle = null, updateStatusMetrics(), -44 === selectedRomanYear && (outPhase.textContent = "Full Moon", outMoonPhase.textContent = "180.0°"), targetAngle = null)) : (isCranking ? (spinSpeed += acceleration, spinSpeed > maxSpeed && (spinSpeed = maxSpeed)) : (spinSpeed *= .85, spinSpeed < 1e-4 && (spinSpeed = 0)), baseAngle += spinSpeed, 0 < spinSpeed && updateStatusMetrics()), drawOuterRing(), gears.forEach(t => drawGear(ctx, t, baseAngle)), drawHands(), requestAnimationFrame(loop)
+      }
+      document.querySelectorAll(".roman-date").forEach(e => {
+        e.addEventListener("click", () => {
+          var t = Number(e.dataset.year),
+            t = ((selectedRomanYear = t) - START_YEAR) / TOTAL_YEARS;
+          targetAngle = t * Math.PI * 12, isAutoSpinning = !0
+        })
+      }), loop()
     </script>
-</body>
-</html>
